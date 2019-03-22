@@ -1,0 +1,25 @@
+#!/bin/bash
+if [ -z $1 ]; then echo "Usage: "; exit 1; fi
+out=/tmp/ffat.img
+size=$1
+wl_sector_size=4096
+state_size=$wl_sector_size
+if [ $state_size -lt $(( 40 + $size / $wl_sector_size * 16 )) ]; then
+	state_size=$(( (40 + $size / $wl_sector_size * 16 + $wl_sector_size - 1) / $wl_sector_size ))
+	state_size=$(( $state_size * wl_sector_size ))
+fi
+echo $state_size
+fat_size=$(( $size - 2 * $state_size - $wl_sector_size ))
+echo $fat_size
+rm $out
+mkfs.vfat -C $out -s1 -f1 -S$wl_sector_size -m /dev/null $(( $fat_size / 1024 ))
+eval $(echo printf '"\xff%0.s"' {1..$state_size}) >> $out
+eval $(echo printf '"\xff%0.s"' {1..$state_size}) >> $out
+eval $(echo printf '"\xff%0.s"' {1..$wl_sector_size}) >> $out
+
+# V (305) wl_flash: config start_addr=0x00000000, full_mem_size=0x00084000, page_size=0x00001000, sector_size=0x00001000, updaterate=0x00000010, wr_size=0x00000010, version=0x00000002, temp_buff_size=0x00000020
+# D (322) wl_flash: config - config result: state_size=0x00001000, cfg_size=0x00001000, addr_cfg=0x00083000, addr_state1=0x00081000, addr_state2=0x00082000, flash_size=0x00080000
+# D (338) wl_flash: init - config ID=2, stored ID=-1, access_count=-1, block_size=-1, max_count=-1, pos=-1, move_count=0xFFFFFFFF
+# D (349) wl_flash: init starts: crc1= 0x0f6187ba, crc2 = 0x0f6187ba, this->state.crc= 0xffffffff, state_copy->crc= 0xffffffff, version=2, read_version=-1
+
+

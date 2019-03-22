@@ -1,9 +1,7 @@
 #include "FS.h"
 #include "FFat.h"
 
-/* You only need to format FFat the first time you run a
-   test or else use the FFat plugin to create a partition
-   https://github.com/me-no-dev/arduino-esp32fs-plugin */
+// You only need to format FFat the first time you run a test
 #define FORMAT_FFAT true
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -156,6 +154,7 @@ void testFileIO(fs::FS &fs, const char * path){
 
 void setup(){
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
     if (FORMAT_FFAT) FFat.format();
     if(!FFat.begin()){
         Serial.println("FFat Mount Failed");
